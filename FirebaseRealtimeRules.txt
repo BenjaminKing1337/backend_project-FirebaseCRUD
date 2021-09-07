@@ -1,0 +1,106 @@
+.read       controls access to data
+.write      controls the ability to create, edit and delete data
+.validate   controls the format of data
+.indexOn    create an index that supports ordering and querying
+
+---------------------------------------------------------------------
+
+wildcard variables:
+
+$uid
+$node_id
+etc.
+
+---------------------------------------------------------------------
+
+Disable all security so everybody can read and write
+Will make the DB wide open to attacks
+
+{
+    "rules": {
+        ".read": true,
+        ".write": true
+    }
+}
+
+---------------------------------------------------------------------
+
+Lockdown the database, so noone can read or write to the database
+{
+    "rules": {
+        ".read": false,
+        ".write": false
+    }
+} 
+
+---------------------------------------------------------------------
+
+Limit access to only authenticated users
+{
+    "rules": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+    }
+} 
+
+---------------------------------------------------------------------
+
+Give users access to content that they created
+This is done using the wildcard $uid
+{
+    "rules": {
+        "posts": {
+            "$uid": {
+                ".read": "$uid === auth.uid",
+                ".write": "$uid === auth.uid"
+            }
+        }
+    }
+}
+
+---------------------------------------------------------------------
+
+Make sure that new data has certain fields
+
+{
+    "rules": {
+        ".read": true,
+        ".write": true,
+        "posts": {
+            "$node_id": {
+                ".validate": "newData.hasChildren(['author', 'date', 'content'])"
+            }
+        }
+    }
+}
+
+---------------------------------------------------------------------
+
+Ensure that posts author field is a string
+
+{
+    "rules": {
+        ".read": true,
+        ".write": true,
+        "posts": {
+            "$node_id": {
+                ".validate": "newData.child('author').isString() &&
+                              newData.child('author').val().length < 50"
+            }
+        }
+    }
+}
+
+---------------------------------------------------------------------
+
+Create an index of height and length. This allows us to order and sort it.
+
+{
+    "rules": {
+        "dinosaurs": {
+            ".indexOn": ["height", "length"]
+        }
+    }
+}
+
+---------------------------------------------------------------------
